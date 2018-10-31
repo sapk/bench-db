@@ -11,25 +11,25 @@ import (
 )
 
 var (
-	mysqlSetupLock sync.Mutex
-	mysqlState     = "unknown"
+	mariadbSetupLock sync.Mutex
+	mariadbState     = "unknown"
 )
 
-func setupMySQL(tb testing.TB) {
-	mysqlSetupLock.Lock()
-	defer mysqlSetupLock.Unlock()
+func setupMariaDB(tb testing.TB) {
+	mariadbSetupLock.Lock()
+	defer mariadbSetupLock.Unlock()
 
-	if mysqlState == "ready" {
-		tb.Log("Skipping setup of mysql")
+	if mariadbState == "ready" {
+		tb.Log("Skipping setup of mariadb")
 		return
 	}
 
-	//Setup mysql database
-	db, err := sql.Open("mysql", os.Getenv("MYSQL_URL"))
-	assert.Nil(tb, err, "Failed to connect to mysql")
-	assert.NotNil(tb, db, "Failed to connect to mysql")
+	//Setup mariadb database
+	db, err := sql.Open("mysql", os.Getenv("MARIADB_URL"))
+	assert.Nil(tb, err, "Failed to connect to mariadb")
+	assert.NotNil(tb, db, "Failed to connect to mariadb")
 
-	clearMySQL(tb, db)
+	clearMariaDB(tb, db)
 	tb.Log("Setting up keyspace benchmark")
 	_, err = db.Exec(`CREATE DATABASE benchmark;`)
 	assert.Nil(tb, err, "Failed to create database")
@@ -39,11 +39,11 @@ func setupMySQL(tb testing.TB) {
 	_, err = db.Exec(`CREATE TABLE tweet (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, timeline VARCHAR(30), text VARCHAR(30))`)
 	//TODO index on  timeline
 	assert.Nil(tb, err, "Failed to create table")
-	mysqlState = "ready"
+	mariadbState = "ready"
 	db.Close()
 }
 
-func clearMySQL(tb testing.TB, db *sql.DB) {
+func clearMariaDB(tb testing.TB, db *sql.DB) {
 	tb.Log("Clearing database benchmark")
 	_, err := db.Exec(`DROP DATABASE IF EXISTS benchmark`)
 	assert.Nil(tb, err, "Failed to drop database")
@@ -61,15 +61,15 @@ func TestMain(m *testing.M) {
 }
 */
 
-func BenchmarkMySQL(b *testing.B) {
+func BenchmarkMariaDB(b *testing.B) {
 	b.StopTimer()
-	if os.Getenv("MYSQL_URL") == "" {
-		b.Skip("Env. variable MYSQL_URL not set -> Skipping MySQL tests")
+	if os.Getenv("MARIADB_URL") == "" {
+		b.Skip("Env. variable MARIADB_URL not set -> Skipping MariaDB tests")
 	}
 
-	setupMySQL(b)
-	db, err := sql.Open("mysql", os.Getenv("MYSQL_URL"))
-	assert.Nil(b, err, "Failed to connect to mysql")
+	setupMariaDB(b)
+	db, err := sql.Open("mysql", os.Getenv("MARIADB_URL"))
+	assert.Nil(b, err, "Failed to connect to mariadb")
 	defer db.Close()
 
 	_, err = db.Exec(`USE benchmark;`)
