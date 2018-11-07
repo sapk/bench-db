@@ -6,44 +6,44 @@ import (
 	"sync"
 	"testing"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	mysqlSetupLock sync.Mutex
-	mysqlState     = "unknown"
+	mssqlSetupLock sync.Mutex
+	mssqlState     = "unknown"
 )
 
-func setupMySQL(tb testing.TB) {
-	mysqlSetupLock.Lock()
-	defer mysqlSetupLock.Unlock()
+func setupMSSQL(tb testing.TB) {
+	mssqlSetupLock.Lock()
+	defer mssqlSetupLock.Unlock()
 
-	if mysqlState == "ready" {
-		tb.Log("Skipping setup of mysql")
+	if mssqlState == "ready" {
+		tb.Log("Skipping setup of mssql")
 		return
 	}
 
-	//Setup mysql database
-	db, err := sql.Open("mysql", os.Getenv("MYSQL_URL"))
-	assert.Nil(tb, err, "Failed to connect to mysql")
-	assert.NotNil(tb, db, "Failed to connect to mysql")
+	//Setup mssql database
+	db, err := sql.Open("mssql", os.Getenv("MSSQL_URL"))
+	assert.Nil(tb, err, "Failed to connect to mssql")
+	assert.NotNil(tb, db, "Failed to connect to mssql")
 
-	clearMySQL(tb, db)
+	clearMSSQL(tb, db)
 	tb.Log("Setting up database benchmark")
 	_, err = db.Exec(`CREATE DATABASE benchmark;`)
 	assert.Nil(tb, err, "Failed to create database")
 	_, err = db.Exec(`USE benchmark;`)
 	assert.Nil(tb, err, "Failed to move to table")
 
-	_, err = db.Exec(`CREATE TABLE tweet (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, timeline VARCHAR(30), text VARCHAR(30))`)
+	_, err = db.Exec(`CREATE TABLE tweet (id INT IDENTITY(1,1) PRIMARY KEY, timeline VARCHAR(30), text VARCHAR(30))`)
 	//TODO index on  timeline
 	assert.Nil(tb, err, "Failed to create table")
-	mysqlState = "ready"
+	mssqlState = "ready"
 	db.Close()
 }
 
-func clearMySQL(tb testing.TB, db *sql.DB) {
+func clearMSSQL(tb testing.TB, db *sql.DB) {
 	tb.Log("Clearing database benchmark")
 	_, err := db.Exec(`DROP DATABASE IF EXISTS benchmark`)
 	assert.Nil(tb, err, "Failed to drop database")
@@ -61,15 +61,15 @@ func TestMain(m *testing.M) {
 }
 */
 
-func BenchmarkMySQL(b *testing.B) {
+func BenchmarkMSSQL(b *testing.B) {
 	b.StopTimer()
-	if os.Getenv("MYSQL_URL") == "" {
-		b.Skip("Env. variable MYSQL_URL not set -> Skipping MySQL tests")
+	if os.Getenv("MSSQL_URL") == "" {
+		b.Skip("Env. variable MSSQL_URL not set -> Skipping MSSQL tests")
 	}
 
-	setupMySQL(b)
-	db, err := sql.Open("mysql", os.Getenv("MYSQL_URL"))
-	assert.Nil(b, err, "Failed to connect to mysql")
+	setupMSSQL(b)
+	db, err := sql.Open("mssql", os.Getenv("MSSQL_URL"))
+	assert.Nil(b, err, "Failed to connect to mssql")
 	defer db.Close()
 
 	_, err = db.Exec(`USE benchmark;`)

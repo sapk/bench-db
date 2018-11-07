@@ -30,7 +30,7 @@ func setupMariaDB(tb testing.TB) {
 	assert.NotNil(tb, db, "Failed to connect to mariadb")
 
 	clearMariaDB(tb, db)
-	tb.Log("Setting up keyspace benchmark")
+	tb.Log("Setting up database benchmark")
 	_, err = db.Exec(`CREATE DATABASE benchmark;`)
 	assert.Nil(tb, err, "Failed to create database")
 	_, err = db.Exec(`USE benchmark;`)

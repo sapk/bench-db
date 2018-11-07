@@ -1,0 +1,10 @@
+version: '3'
+services:
+  database:
+    image: microsoft/mssql-server-linux:2017-CU8
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=1Password
+    ports: 
+      - 1433:1433
