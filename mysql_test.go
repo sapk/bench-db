@@ -5,6 +5,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,8 @@ func setupMySQL(tb testing.TB) {
 
 	clearMySQL(tb, db)
 	tb.Log("Setting up database benchmark")
-	_, err = db.Exec(`CREATE DATABASE benchmark;`)
+	_, err = db.Exec(`CREATE DATABASE benchmark`)
+	time.Sleep(1 * time.Second)
 	assert.Nil(tb, err, "Failed to create database")
 	_, err = db.Exec(`USE benchmark;`)
 	assert.Nil(tb, err, "Failed to move to table")
@@ -46,6 +48,7 @@ func setupMySQL(tb testing.TB) {
 func clearMySQL(tb testing.TB, db *sql.DB) {
 	tb.Log("Clearing database benchmark")
 	_, err := db.Exec(`DROP DATABASE IF EXISTS benchmark`)
+	time.Sleep(1 * time.Second)
 	assert.Nil(tb, err, "Failed to drop database")
 }
 

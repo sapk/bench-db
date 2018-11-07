@@ -38,12 +38,12 @@ func setupCassandra(tb testing.TB) {
 	if err != nil && !strings.Contains(err.Error(), "no response received from cassandra within timeout period") {
 		assert.Nil(tb, err, "Failed to create keyspace")
 	}
-	time.Sleep(3 * time.Second)
+	time.Sleep(5 * time.Second)
 	err = session.Query(`CREATE TABLE benchmark.tweet(timeline text, id UUID, text text, PRIMARY KEY(id))`).Exec()
 	if err != nil && !strings.Contains(err.Error(), "no response received from cassandra within timeout period") {
 		assert.Nil(tb, err, "Failed to create table")
 	}
-	time.Sleep(3 * time.Second)
+	time.Sleep(5 * time.Second)
 	/*
 		err = session.Query(`CREATE INDEX benchmark.tweet(timeline)`).Exec()
 		if err != nil && !strings.Contains(err.Error(), "no response received from cassandra within timeout period") {
