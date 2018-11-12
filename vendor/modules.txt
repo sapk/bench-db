@@ -1,0 +1,28 @@
+# cloud.google.com/go v0.32.0
+cloud.google.com/go/civil
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
+# github.com/denisenkom/go-mssqldb v0.0.0-20181014144952-4e0d7dc8888f
+github.com/denisenkom/go-mssqldb
+github.com/denisenkom/go-mssqldb/internal/cp
+# github.com/go-sql-driver/mysql v1.4.0
+github.com/go-sql-driver/mysql
+# github.com/gocql/gocql v0.0.0-20181109100135-9de8c0414fd7
+github.com/gocql/gocql
+github.com/gocql/gocql/internal/lru
+github.com/gocql/gocql/internal/murmur
+github.com/gocql/gocql/internal/streams
+# github.com/golang/snappy v0.0.0-20170215233205-553a64147049
+github.com/golang/snappy
+# github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed
+github.com/hailocab/go-hostpool
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
+# github.com/stretchr/testify v1.2.2
+github.com/stretchr/testify/assert
+# golang.org/x/crypto v0.0.0-20181106171534-e4dc69e5b2fd
+golang.org/x/crypto/md4
+# google.golang.org/appengine v1.3.0
+google.golang.org/appengine/cloudsql
+# gopkg.in/inf.v0 v0.9.1
+gopkg.in/inf.v0
