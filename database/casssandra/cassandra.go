@@ -1,20 +1,25 @@
 package cassandra
 
 import (
+	"context"
 	"strings"
 	"testing"
 	"time"
 
-	docker "github.com/fsouza/go-dockerclient"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/gocql/gocql"
+	"github.com/moby/moby/client"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/sapk/bench-db/database"
 )
 
 //Cassandra represent a cassandra type
 type Cassandra struct {
-	dockerClient    *docker.Client
-	dockerContainer *docker.Container
-	session         *gocql.Session
+	dockerClient      *client.Client
+	dockerContainerID string
+	session           *gocql.Session
 }
 
 //Name return cassandra
@@ -24,34 +29,29 @@ func (c *Cassandra) Name() string {
 
 //Setup setup the cassandra database
 func (c *Cassandra) Setup(tb testing.TB) {
-	endpoint := "unix:///var/run/docker.sock" //TODO sue env Docker endpoint //	client, _ := docker.NewClientFromEnv()
-	client, err := docker.NewClient(endpoint)
+	ctx := context.Background()
+	cli, err := client.NewEnvClient()
 	if !assert.NoError(tb, err, "Failed to connect to docker") {
 		assert.FailNow(tb, "Failed setup docker")
 	}
-	c.dockerClient = client
+	c.dockerClient = cli
 
-	err = client.PullImage(docker.PullImageOptions{
-		Repository: "cassandra",
-	}, docker.AuthConfiguration{})
+	//_, err = cli.ImagePull(ctx, "docker.io/library/cassandra", types.ImagePullOptions{})
+	_, err = cli.ImagePull(ctx, "cassandra", types.ImagePullOptions{})
 	if !assert.NoError(tb, err, "Failed to pull docker image cassandra") {
 		assert.FailNow(tb, "Failed setup docker")
 	}
 
-	container, err := client.CreateContainer(docker.CreateContainerOptions{
-		//Name: "cassandra_database_bench",
-		Config: &docker.Config{
-			Image: "cassandra",
-		},
-	})
+	cont, err := cli.ContainerCreate(ctx, &container.Config{
+		Image: "cassandra",
+	}, nil, nil, "")
 	assert.NoError(tb, err, "Failed to create docker container cassandra")
 
-	tb.Log(container.Name, container.State)
-	//container.
-	err = client.StartContainer(container.ID, &docker.HostConfig{})
+	//tb.Log(cont.Name, cont.State)
+	err = cli.ContainerStart(ctx, cont.ID, types.ContainerStartOptions{})
 	assert.NoError(tb, err, "Failed to start docker container cassandra")
 
-	c.dockerContainer = container
+	c.dockerContainerID = cont.ID
 	/* TODO
 	var buf bytes.Buffer
 	err = client.AttachToContainer(docker.AttachToContainerOptions{
@@ -63,7 +63,7 @@ func (c *Cassandra) Setup(tb testing.TB) {
 	})
 	assert.Nil(tb, err, "Failed to attach to docker container cassandra")
 	*/
-	time.Sleep(15 * time.Second)
+	time.Sleep(60 * time.Second)
 }
 
 //Init the cassandra database structure
@@ -80,7 +80,7 @@ func (c *Cassandra) Init(tb testing.TB) {
 	if err != nil && !strings.Contains(err.Error(), "no response received from cassandra within timeout period") {
 		assert.NoError(tb, err, "Failed to create Cassandra table benchmark.tweet")
 	}
-	time.Sleep(5 * time.Second)
+	time.Sleep(15 * time.Second)
 }
 
 //Clean the cassandra database structure
@@ -96,15 +96,28 @@ func (c *Cassandra) Clean(tb testing.TB) {
 
 //Destroy the cassandra container
 func (c *Cassandra) Destroy(tb testing.TB) {
-	err := c.dockerClient.StopContainer(c.dockerContainer.ID, 30)
+	ctx := context.Background()
+	timeout := 30 * time.Second
+	err := c.dockerClient.ContainerStop(ctx, c.dockerContainerID, &timeout)
 	assert.Nil(tb, err, "Failed to stop container")
-	err = c.dockerClient.RemoveContainer(docker.RemoveContainerOptions{
-		ID:            c.dockerContainer.ID,
-		Force:         true,
+
+	err = c.dockerClient.ContainerRemove(ctx, c.dockerContainerID, types.ContainerRemoveOptions{
 		RemoveVolumes: true,
+		//	RemoveLinks:   true,
+		Force: true,
 	})
 	assert.NoError(tb, err, "Failed to remove container")
 	//time.Sleep(5 * time.Second)
+}
+
+//Benchs return bench list
+func (c *Cassandra) Benchs(tb testing.TB) []database.Bench {
+	s := c.getSession(tb)
+	return []database.Bench{
+		BenchAddTweet{
+			session: s,
+		},
+	}
 }
 
 func (c *Cassandra) getSession(tb testing.TB) *gocql.Session {
@@ -113,9 +126,29 @@ func (c *Cassandra) getSession(tb testing.TB) *gocql.Session {
 	if c.session != nil {
 		return c.session
 	}
-	cluster := gocql.NewCluster(c.dockerContainer.NetworkSettings.IPAddress)
+
+	ctx := context.Background()
+	cont, err := c.dockerClient.ContainerInspect(ctx, c.dockerContainerID)
+	assert.Nil(tb, err, "Failed to inspect container")
+	nets := ""
+	for _, n := range cont.NetworkSettings.Networks {
+		nets += n.IPAddress //TODO join
+	}
+	tb.Log("DEBUG", nets)
+	cluster := gocql.NewCluster(nets)
 	session, err := cluster.CreateSession()
 	assert.NoError(tb, err, "Failed to connect to Cassandra cluster")
 	assert.NotNil(tb, session, "Failed to connect to Cassandra cluster")
 	return session
+}
+
+//BenchAddTweet represent a cassandra bench
+type BenchAddTweet struct {
+	session *gocql.Session
+}
+
+//Run the benchmark
+func (b BenchAddTweet) Run(tb testing.TB) {
+	//TODO and use bench N
+	tb.Skip()
 }

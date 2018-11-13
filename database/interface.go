@@ -9,10 +9,10 @@ type Database interface {
 	Init(testing.TB)
 	Clean(testing.TB)
 	Destroy(testing.TB)
-	Benchs() Benchs
+	Benchs() []Bench
 }
 
 //Benchs a bench to run on database
-type Benchs interface {
-	Run(*testing.B)
+type Bench interface {
+	Run(testing.TB)
 }
