@@ -11,9 +11,14 @@ require (
 	github.com/docker/docker v1.13.1
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.3.3 // indirect
+	github.com/flimzy/kivik v1.8.1 // indirect
+	github.com/go-kivik/couchdb v1.7.2-0.20190409081733-e357007c4eb0
+	github.com/go-kivik/kivik v1.7.3-0.20190402132613-2a33f12a9428
 	github.com/go-sql-driver/mysql v1.4.0
 	github.com/gocql/gocql v0.0.0-20181109100135-9de8c0414fd7
 	github.com/google/go-cmp v0.2.0 // indirect
+	github.com/google/uuid v1.1.1
+	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/moby/moby v1.13.1
 	github.com/pkg/errors v0.8.0 // indirect
