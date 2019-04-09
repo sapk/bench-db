@@ -33,9 +33,15 @@ func setupCouchDB(tb testing.TB) {
 	err = client.Authenticate(context.TODO(), couchdb.BasicAuth("admin", "password"))
 	assert.Nil(tb, err, "Failed to auth to couchdb")
 
-	db := client.DB(context.TODO(), "tweets", nil)
+	exist, err := client.DBExists(context.TODO(), "tweets", nil)
+	assert.Nil(tb, err, "Failed to check db on couchdb")
+	if exist {
+		err = client.DestroyDB(context.TODO(), "tweets", nil)
+		assert.Nil(tb, err, "Failed to create db on couchdb")
+	}
+	err = client.CreateDB(context.TODO(), "tweets", nil)
+	assert.Nil(tb, err, "Failed to create db on couchdb")
 
-	clearCouchDB(tb, db)
 	tb.Log("Setting up couchdb benchmark")
 
 	//TODO setup database tweets;
@@ -43,10 +49,6 @@ func setupCouchDB(tb testing.TB) {
 
 	couchdbState = "ready"
 	client.Close(context.TODO())
-}
-
-func clearCouchDB(tb testing.TB, session *kivik.DB) {
-	//TODO
 }
 
 func BenchmarkCouchDB(b *testing.B) {
