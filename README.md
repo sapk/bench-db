@@ -1,5 +1,5 @@
-# bench-db-ripe-atlas
-use ripe atlas data to benchmark various database
+# bench-db
+Try to benchmark various database
 
 ## Run specific bench
 ```
