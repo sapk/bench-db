@@ -36,8 +36,8 @@ docker-compose -p mssql -f docker/mssql/docker-compose.yml down
 
 docker-compose -p couchdb -f docker/couchdb/docker-compose.yml up -d
 sleep 2m
-COUCHDB_URL="root:password@tcp($(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mariadb_database_1):3306)/" \
+COUCHDB_URL="http://$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' couchdb_database_1):5984/" \
 go test -bench=. -v -benchtime=60s
-COUCHDB_URL="root:password@tcp($(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mariadb_database_1):3306)/" \
+COUCHDB_URL="http://$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' couchdb_database_1):5984/" \
 go test -bench=. -v -benchtime=300s
 docker-compose -p couchdb -f docker/couchdb/docker-compose.yml down

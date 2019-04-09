@@ -27,7 +27,7 @@ func setupCouchDB(tb testing.TB) {
 		return
 	}
 
-	client, err := kivik.New("couch", "http://"+os.Getenv("COUCHDB_IP")+"/")
+	client, err := kivik.New("couch", os.Getenv("COUCHDB_URL"))
 	assert.Nil(tb, err, "Failed to connect to couchdb")
 	assert.NotNil(tb, client, "Failed to connect to couchdb")
 	err = client.Authenticate(context.TODO(), couchdb.BasicAuth("admin", "password"))
@@ -53,13 +53,13 @@ func setupCouchDB(tb testing.TB) {
 
 func BenchmarkCouchDB(b *testing.B) {
 	b.StopTimer()
-	if os.Getenv("COUCHDB_IP") == "" {
-		b.Skip("Env. variable COUCHDB_IP not set -> Skipping couchdb tests")
+	if os.Getenv("COUCHDB_URL") == "" {
+		b.Skip("Env. variable COUCHDB_URL not set -> Skipping couchdb tests")
 	}
 
 	setupCouchDB(b)
 
-	client, err := kivik.New("couch", "http://"+os.Getenv("COUCHDB_IP")+"/")
+	client, err := kivik.New("couch", os.Getenv("COUCHDB_URL"))
 	assert.Nil(b, err, "Failed to connect to couchdb")
 	assert.NotNil(b, client, "Failed to connect to couchdb")
 	err = client.Authenticate(context.TODO(), couchdb.BasicAuth("admin", "password"))
