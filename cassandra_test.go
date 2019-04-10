@@ -86,6 +86,8 @@ func BenchmarkCassandra(b *testing.B) {
 
 	setupCassandra(b)
 	cluster := gocql.NewCluster(os.Getenv("CASSANDRA_IP"))
+	cluster.Timeout = 5 * time.Second
+	cluster.ConnectTimeout = 5 * time.Second
 	//cluster.Keyspace = "benchmark"
 	//cluster.Consistency = gocql.Quorum
 	session, err := cluster.CreateSession()
@@ -97,9 +99,22 @@ func BenchmarkCassandra(b *testing.B) {
 	b.Run("AddTweet", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
 			// insert a tweet
-			//TODO use ripe atlas
 			err = session.Query(`INSERT INTO benchmark.tweet (timeline, id, text) VALUES (?, ?, ?)`, "me", gocql.TimeUUID(), "hello world").Exec()
 			assert.Nil(b, err, "Failed to add data to cluster")
+		}
+	})
+	b.Run("CountTweet", func(b *testing.B) {
+		for n := 0; n < b.N; n++ {
+			// count all tweet
+			err = session.Query(`SELECT COUNT(*) FROM benchmark.tweet`).Exec()
+			assert.Nil(b, err, "Failed to count data of cluster")
+		}
+	})
+	b.Run("ReadTweet", func(b *testing.B) {
+		for n := 0; n < b.N; n++ {
+			// select a tweet
+			err = session.Query(`SELECT timeline, id, text FROM benchmark.tweet LIMIT 1`).Exec()
+			assert.Nil(b, err, "Failed to read data from cluster")
 		}
 	})
 }
